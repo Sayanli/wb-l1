@@ -1,29 +1,50 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
+	"time"
 )
 
-func main() {
-	slice := []int{2, 4, 6, 8, 10}
-	cnt := len(slice)
-	ans := 0
+func worker(data <-chan int, wg *sync.WaitGroup, id int) {
+	defer wg.Done()
 
-	var wg sync.WaitGroup
-	wg.Add(cnt)
-
-	var mx sync.Mutex
-
-	for _, v := range slice {
-		go func(n int) {
-			defer wg.Done()
-			mx.Lock()
-			ans += n * n
-			mx.Unlock()
-		}(v)
+	for data := range data {
+		fmt.Printf("Worker %d received %d\n", id, data)
+		time.Sleep(1 * time.Second)
 	}
+}
+func main() {
+	numWorkers := flag.Int("w", 5, "number of workers")
+	flag.Parse()
+
+	data := make(chan int)
+	var wg sync.WaitGroup
+
+	for i := 0; i < *numWorkers; i++ {
+		wg.Add(1)
+		go worker(data, &wg, i)
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		//если получили сигнал Ctrl+C, закроем канал data
+		close(data)
+	}()
+
+	for i := 0; i < 20; i++ {
+		data <- i
+	}
+
+	close(data)
 	wg.Wait()
 
-	fmt.Println(ans)
+	fmt.Println("main done")
 }
