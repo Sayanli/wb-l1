@@ -2,24 +2,22 @@ package main
 
 import (
 	"fmt"
-	"strings"
 )
 
-func reverseWords(s string) string {
-	var b strings.Builder
+type s1 struct {
+	Str string
+}
 
-	words := strings.Fields(s)
+type s2 struct {
+	str []rune
+}
 
-	for i, j := 0, len(words)-1; i < j; i, j = i+1, j-1 {
-		words[i], words[j] = words[j], words[i]
-	}
-	for _, word := range words {
-		b.WriteString(" " + word)
-	}
-	return strings.TrimSpace(b.String())
+func Adapter(str []rune) string {
+	return string(str)
 }
 
 func main() {
-	str := "hello world"
-	fmt.Println(reverseWords(str))
+	f1 := s1{Str: "hello"}
+	f2 := s2{str: []rune("world")}
+	fmt.Println(f1.Str + " " + Adapter(f2.str))
 }
