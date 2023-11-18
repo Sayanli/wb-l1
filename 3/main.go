@@ -10,9 +10,11 @@ func main() {
 	cnt := len(slice)
 	ans := 0
 
+	//создаём счетчик горутин, т.к. мы знаем кол-во элементов в слайсе
 	var wg sync.WaitGroup
 	wg.Add(cnt)
 
+	//создаём мьютекс для предотвращения гонки
 	var mx sync.Mutex
 
 	for _, v := range slice {
